@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery PINN Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header glass-panel">
+            <h1>Battery PINN Monitor</h1>
+            <div class="status-indicator">
+                <span class="dot pulse"></span>
+                <span>Live</span>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <div class="card glass-panel stat-card">
+                <h2>State of Charge (SOC)</h2>
+                <div class="value-container">
+                    <span id="soc-value">--</span><span class="unit">%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar cyan-glow" id="soc-progress"></div>
+                </div>
+            </div>
+
+            <div class="card glass-panel stat-card">
+                <h2>State of Health (SOH)</h2>
+                <div class="value-container">
+                    <span id="soh-value">--</span><span class="unit">%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar purple-glow" id="soh-progress"></div>
+                </div>
+            </div>
+
+            <div class="card glass-panel chart-card">
+                <h2>Voltage Profile</h2>
+                <div class="chart-container">
+                    <canvas id="voltage-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card glass-panel chart-card">
+                <h2>Temperature Profile</h2>
+                <div class="chart-container">
+                    <canvas id="temp-chart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
