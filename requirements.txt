@@ -1,0 +1,12 @@
+torch>=2.0.0
+numpy
+pandas
+matplotlib
+scipy
+h5py
+scikit-learn
+onnx
+onnxruntime
+jupyterlab
+seaborn
+tqdm
