@@ -24,7 +24,7 @@ def main():
     
     # Initialize neural network
     model = PINNNetwork(
-        hidden_sizes=[64, 64, 64],
+        hidden_sizes=[128, 128, 128, 128],
         R_s=1e-5, D_s=1e-14, F=96485.33, A=0.015
     )
     
@@ -36,16 +36,38 @@ def main():
         spm_physics=spm, 
         optimizer=optimizer, 
         lambda_phys=1.0, 
-        adaptive_lambda=False
+        adaptive_lambda=True
     )
     
     logging.info("Starting Training...")
-    # Train for 5 epochs for demonstration
-    history = trainer.train(dataloader, epochs=5, num_colloc=100)
+    # Train for 20 epochs with early stopping
+    history = trainer.train(dataloader, epochs=20, num_colloc=100, early_stopping_patience=5)
     
     logging.info("Evaluating Model...")
     # Evaluate model
     metrics = evaluate_pinn(model, dataloader)
+    
+    logging.info("Exporting Model to ONNX for IoT Edge Deployment...")
+    # Dummy inputs for ONNX export: (t, I, r)
+    dummy_t = torch.randn(1, 1)
+    dummy_I = torch.randn(1, 1)
+    dummy_r = torch.randn(1, 1)
+    torch.onnx.export(
+        model, 
+        (dummy_t, dummy_I, dummy_r), 
+        "pinn_bms.onnx", 
+        input_names=['time', 'current', 'radius'], 
+        output_names=['voltage', 'temperature', 'concentration'], 
+        dynamic_axes={
+            'time': {0: 'batch_size'},
+            'current': {0: 'batch_size'},
+            'radius': {0: 'batch_size'},
+            'voltage': {0: 'batch_size'},
+            'temperature': {0: 'batch_size'},
+            'concentration': {0: 'batch_size'}
+        }
+    )
+    logging.info("Model exported to pinn_bms.onnx successfully!")
     
     logging.info("Pipeline executed successfully!")
 

@@ -3,7 +3,7 @@ import torch.nn as nn
 from src.physics.spm import SPMAnsatz
 
 class PINNNetwork(nn.Module):
-    def __init__(self, hidden_sizes=[64, 64, 64], R_s=1e-5, D_s=1e-14, F=96485.33, A=0.015):
+    def __init__(self, hidden_sizes=[128, 128, 128, 128], R_s=1e-5, D_s=1e-14, F=96485.33, A=0.015):
         """
         Physics-Informed Neural Network (PINN) for Battery Modeling.
         Takes (t, I, r) as input and outputs (V, T, c).

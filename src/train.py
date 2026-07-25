@@ -107,7 +107,7 @@ class PINNTrainer:
         
         return loss_data.item(), loss_physics.item(), loss_total.item()
 
-    def train(self, dataloader, epochs, num_colloc=1000):
+    def train(self, dataloader, epochs, num_colloc=1000, early_stopping_patience=5):
         """
         Main training loop.
         
@@ -115,10 +115,15 @@ class PINNTrainer:
             dataloader: Yields (t, I, V, T).
             epochs: Number of training epochs.
             num_colloc: Number of collocation points generated per batch.
+            early_stopping_patience: Number of epochs to wait for improvement before stopping.
         """
         self.model.train()
         history = {'data_loss': [], 'physics_loss': [], 'total_loss': [], 'lambda': []}
         device = next(self.model.parameters()).device
+        
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=3)
+        best_loss = float('inf')
+        patience_counter = 0
         
         for epoch in range(epochs):
             epoch_data_loss, epoch_phys_loss, epoch_tot_loss = 0.0, 0.0, 0.0
@@ -152,9 +157,31 @@ class PINNTrainer:
                 })
                 
             num_batches = len(dataloader)
-            history['data_loss'].append(epoch_data_loss / num_batches)
-            history['physics_loss'].append(epoch_phys_loss / num_batches)
-            history['total_loss'].append(epoch_tot_loss / num_batches)
+            avg_data_loss = epoch_data_loss / num_batches
+            avg_phys_loss = epoch_phys_loss / num_batches
+            avg_tot_loss = epoch_tot_loss / num_batches
+            
+            history['data_loss'].append(avg_data_loss)
+            history['physics_loss'].append(avg_phys_loss)
+            history['total_loss'].append(avg_tot_loss)
             history['lambda'].append(self.lambda_phys)
+            
+            # Step the LR scheduler
+            scheduler.step(avg_tot_loss)
+            
+            # Dynamic Lambda: increase slowly if adaptive_lambda is true
+            if self.adaptive_lambda and self.lambda_phys < 10.0:
+                self.lambda_phys *= 1.1
+            
+            # Early Stopping
+            if avg_tot_loss < best_loss:
+                best_loss = avg_tot_loss
+                patience_counter = 0
+                # Optionally save best model weights here
+            else:
+                patience_counter += 1
+                if patience_counter >= early_stopping_patience:
+                    logging.info(f"Early stopping triggered at epoch {epoch+1}")
+                    break
             
         return history
